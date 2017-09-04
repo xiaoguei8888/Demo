@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">DemoActivity</string>
+    <string name="label_city">Set city</string>
+    <string name="edit_hint">Enter city name</string>
+    <string name="edit_default_city">Beijing</string>
+    <string name="label_get_weather">Get weather</string>
+    <string name="label_no_weather">No weather!!</string>
+</resources>
