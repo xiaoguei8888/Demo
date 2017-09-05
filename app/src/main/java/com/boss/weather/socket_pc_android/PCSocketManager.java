@@ -1,4 +1,4 @@
-package com.boss.weather;
+package com.boss.weather.socket_pc_android;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -8,14 +8,10 @@ import java.net.Socket;
 import java.util.Scanner;
 
 /**
- * Created by bojia on 2017-09-04.
+ * Created by qiujianbo on 2017/9/5.
  */
 
-public class DemoTest {
-    public final static void main(String[] args) {
-//        startSocketClent();
-        startSocketServer();
-    }
+public class PCSocketManager {
 
     private final static int FORWARD_LOCAL_PORT = 0; // any open port
     private final static int FORWARD_REMOTE_PORT = 9999;
@@ -186,7 +182,7 @@ public class DemoTest {
                             while ((len = dis.read(buffer)) != -1) {
                                 m = new String(buffer, 0, len);
                                 System.out.println(String.format("--->receive:%s", m));
-                                String response = String.format("I am from Android, i got \'%s\'", m);
+                                String response = String.format("I am from PC, i got \'%s\'", m);
                                 dos.write(response.getBytes());
                                 dos.flush();
                                 System.out.println(String.format("send:%s", response));
