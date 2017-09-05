@@ -1,10 +1,9 @@
 package com.boss.weather;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -14,15 +13,17 @@ import java.util.Scanner;
 
 public class DemoTest {
     public final static void main(String[] args) {
-        startSocketClent();
+//        startSocketClent();
+        startSocketServer();
     }
 
-    private final static int LOCAL_PORT = 0; // any open port
-    private final static int REMOTE_PORT = 9999;
-    /**
-     * 先在手机端启动应用
-     */
-    public static void startSocketClent() {
+    private final static int FORWARD_LOCAL_PORT = 0; // any open port
+    private final static int FORWARD_REMOTE_PORT = 9999;
+
+    private final static int REVERSE_LOCAL_PORT = 34444;
+    private final static int REVERSE_REMOTE_PORT = 34443; // any open port
+
+    private static void execCommand() {
         try {
             // 等待设备连接
             String script_wait = "adb wait-for-device";
@@ -37,17 +38,52 @@ public class DemoTest {
                 System.out.println("get " + s);
             }
             // 设置端口转发
-            String script_forward = String.format("adb forward tcp:%s tcp:%s", LOCAL_PORT, REMOTE_PORT);
-            Process p1 = Runtime.getRuntime().exec(script_forward);
-            System.out.println(String.format("exec \'%s\'", script_forward));
-            dis = new DataInputStream(p.getInputStream());
-            dos = new DataOutputStream(p.getOutputStream());
+            // 解除绑定
+//            String script_remove_forward = "adb forward --remove-all";
+//            Runtime.getRuntime().exec(script_remove_forward);
+//            String script_forward = String.format("adb forward tcp:%s tcp:%s", FORWARD_LOCAL_PORT, FORWARD_REMOTE_PORT);
+//            Process p1 = Runtime.getRuntime().exec(script_forward);
+//            System.out.println(String.format("exec \'%s\'", script_forward));
+//            dis = new DataInputStream(p1.getInputStream());
+//            dos = new DataOutputStream(p1.getOutputStream());
+//            while ((len = dis.read(buffer)) != -1) {
+//                String s = new String(buffer, 0, len);
+//                System.out.println("get " + s);
+//            }
+            // 设置端口反转
+            // 解除绑定
+            String script_remove_reverse = "adb reverse --remove-all";
+            Process p2 = Runtime.getRuntime().exec(script_remove_reverse);
+            System.out.println(String.format("exec \'%s\'", script_remove_reverse));
+            dis = new DataInputStream(p2.getInputStream());
+            dos = new DataOutputStream(p2.getOutputStream());
             while ((len = dis.read(buffer)) != -1) {
                 String s = new String(buffer, 0, len);
                 System.out.println("get " + s);
             }
+            String script_reverse = String.format("adb reverse tcp:%s tcp:%s", REVERSE_REMOTE_PORT, REVERSE_LOCAL_PORT);
+            Process p3 = Runtime.getRuntime().exec(script_reverse);
+            System.out.println(String.format("exec \'%s\'", script_reverse));
+            dis = new DataInputStream(p3.getInputStream());
+            dos = new DataOutputStream(p3.getOutputStream());
+            while ((len = dis.read(buffer)) != -1) {
+                String s = new String(buffer, 0, len);
+                System.out.println("get " + s);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * 先在手机端启动应用
+     */
+    public static void startSocketClent() {
+        execCommand();
+        try {
             // 启动socket，连接本地端口
-            final Socket socket = new Socket("127.0.0.1", REMOTE_PORT);
+            final Socket socket = new Socket("127.0.0.1", FORWARD_REMOTE_PORT);
             if (socket.isConnected()) {
                 System.out.println("socket connected");
                 new Thread(new Runnable() {
@@ -104,6 +140,66 @@ public class DemoTest {
                 System.out.println("socket is not connected");
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Thread socketServerThread;
+    public static void startSocketServer() {
+        System.out.println("startSocketServer");
+        stopSocketServer();
+        socketServerThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                execCommand();
+                createSocketServer();
+            }
+        });
+        socketServerThread.start();
+    }
+
+    private static void stopSocketServer() {
+        if (socketServerThread != null) {
+            socketServerThread.interrupt();
+            socketServerThread = null;
+        }
+    }
+
+    private static void createSocketServer() {
+        System.out.println("createSocketServer");
+        try {
+            ServerSocket serverSocket = new ServerSocket(REVERSE_LOCAL_PORT);
+            serverSocket.setReuseAddress(true);
+            while (!Thread.interrupted()) {
+                System.out.println(String.format("wait socket connect:%s", serverSocket));
+                final Socket socket = serverSocket.accept();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            System.out.println(String.format("%s start", Thread.currentThread().getName()));
+                            DataInputStream dis = new DataInputStream(socket.getInputStream());
+                            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+                            byte[] buffer = new byte[1024];
+                            int len;
+                            String m = null;
+                            while ((len = dis.read(buffer)) != -1) {
+                                m = new String(buffer, 0, len);
+                                System.out.println(String.format("--->receive:%s", m));
+                                String response = String.format("I am from Android, i got \'%s\'", m);
+                                dos.write(response.getBytes());
+                                dos.flush();
+                                System.out.println(String.format("send:%s", response));
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            System.out.println(String.format("%s finish", Thread.currentThread().getName()));
+                        }
+                    }
+                }).start();
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

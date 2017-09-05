@@ -1,6 +1,5 @@
 package com.boss.weather;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -14,8 +13,10 @@ import android.widget.Toast;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 
 import timber.log.Timber;
 
@@ -46,7 +47,13 @@ public class MainActivity extends AppCompatActivity implements WearherContract.V
 //                setLoading(true);
             }
         });
-        startSocketServer();
+//        startSocketServer();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                startSocketClient();
+            }
+        }).start();
     }
 
     Thread socketServerThread;
@@ -103,6 +110,74 @@ public class MainActivity extends AppCompatActivity implements WearherContract.V
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void startSocketClient() {
+        try {
+            Timber.i("startSocketClient");
+            // 启动socket，连接本地端口
+            final Socket socket = new Socket();
+            SocketAddress address = new InetSocketAddress("127.0.0.1", 34443);
+            socket.setReuseAddress(true);
+            socket.connect(address);
+            if (socket.isConnected()) {
+                Timber.i("socket connected");
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            DataInputStream dis = new DataInputStream(socket.getInputStream());
+
+                            byte[] buffer = new byte[1024];
+                            int len;
+                            while ((len = dis.read(buffer)) != -1) {
+                                String s = new String(buffer, 0, len);
+                                Timber.i("--->get from Android client:%s" ,s);
+                            }
+
+                        } catch (Exception e) {
+                            Timber.i(e);
+                        }
+                    }
+                }).start();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            DataOutputStream dos1 = new DataOutputStream(socket.getOutputStream());
+                            dos1.write("hi".getBytes());
+                            dos1.flush();
+                            Timber.i("send:\'hi\'");
+                            Timber.i("------------");
+
+//                            // ------- input
+//                            String input;
+//                            Scanner scanner = new Scanner(System.in);
+//                            while (true) {
+//                                System.out.println(String.format("input:"));
+//                                input = scanner.nextLine();
+//                                if (input.length() == 0) {
+//                                    System.out.println(String.format("length is 0"));
+//                                    continue;
+//                                }
+//                                dos1.write(input.getBytes());
+//                                dos1.flush();
+//                                System.out.println(String.format("send:\'%s'", input));
+//                            }
+
+                        } catch (Exception e) {
+                            Timber.i(e);
+                        } finally {
+                            Timber.i(String.format("finish"));
+                        }
+                    }
+                }).start();
+            } else {
+                Timber.i("socket is not connected");
+            }
+        } catch (IOException e) {
+            Timber.i(e);
         }
     }
 
