@@ -46,10 +46,16 @@ public class WeatherPresenter implements WearherContract.Presenter {
                 })
                 .delay(3, TimeUnit.SECONDS)
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .map(new Function<String, String>() {
+                .map(new Function<String, Integer>() {
                     @Override
-                    public String apply(String s) throws Exception {
-                        return s + " weather is sunny.";
+                    public Integer apply(String s) throws Exception {
+                        return s.length();
+                    }
+                })
+                .map(new Function<Integer, String>() {
+                    @Override
+                    public String apply(Integer l) throws Exception {
+                        return l + " weather is sunny.";
                     }
                 })
                 .subscribeOn(Schedulers.io())

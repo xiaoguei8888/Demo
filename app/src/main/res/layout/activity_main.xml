@@ -1,33 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.boss.weather.MainActivity">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/label_city"/>
-
-    <EditText
-        android:id="@+id/edit_city_name"
+    <RelativeLayout
+        android:id="@+id/range_guide_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/edit_default_city"
-        android:hint="@string/edit_hint"/>
+        android:layout_height="match_parent"
+        android:visibility="gone">
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/range_guide_reddot"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/range_guide_reddot"
+                android:layout_marginTop="20dp"/>
+            <ImageView
+                android:id="@+id/range_guide_hand"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/range_guide_hand"
+                android:layout_marginTop="25dp"
+                android:layout_marginLeft="5dp"/>
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/range_guide_word"
+                android:layout_marginLeft="80dp"/>
+        </RelativeLayout>
+        <ImageView
+            android:layout_centerInParent="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/measure_distance_guide_x"/>
+    </RelativeLayout>
 
-    <Button
-        android:id="@+id/btn_get_weather"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/label_get_weather"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/text_weather_info"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/label_no_weather"/>
+        <Button
+            android:id="@+id/start_sgmap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="start sgmap://map.sogou.com"/>
+    </RelativeLayout>
 
-</LinearLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_city"/>
+
+        <EditText
+            android:id="@+id/edit_city_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_default_city"
+            android:hint="@string/edit_hint"/>
+
+        <Button
+            android:id="@+id/btn_get_weather"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_get_weather"/>
+
+        <TextView
+            android:id="@+id/text_weather_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_no_weather"/>
+    </RelativeLayout>
+
+</RelativeLayout>

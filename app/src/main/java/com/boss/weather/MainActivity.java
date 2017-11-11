@@ -3,10 +3,17 @@ package com.boss.weather;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +35,12 @@ public class MainActivity extends AppCompatActivity implements WearherContract.V
 
         mWeatherPresenter = new WeatherPresenter(this);
 
+        findViewById(R.id.start_sgmap).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openUrl("sgmap://map.sogou.com");
+            }
+        });
         // setup views
         mCityNameEdit = (EditText) findViewById(R.id.edit_city_name);
         mGetWeatherBtn = (Button) findViewById(R.id.btn_get_weather);
@@ -43,8 +56,32 @@ public class MainActivity extends AppCompatActivity implements WearherContract.V
         });
 //        AndroidSocketManager.startSocketServer();
         AndroidSocketManager.startSocketClient();
+
+        //
+        final ImageView hand = (ImageView) findViewById(R.id.range_guide_hand);
+        Animation handAnim = AnimationUtils.loadAnimation(this, R.anim.measure_distance_guide);
+        hand.startAnimation(handAnim);
+
+        findViewById(R.id.range_guide_layout).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                v.setOnTouchListener(null);
+                hand.clearAnimation();
+                v.setVisibility(View.GONE);
+                return false;
+            }
+        });
+
+
     }
 
+    protected void openUrl(String url) {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        Uri content_url = Uri.parse(url);
+        intent.setData(content_url);
+        startActivity(intent);
+    }
     @Override
     public void showWeather(String city) {
         mWeatherPresenter.getWeather(city);
